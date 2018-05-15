@@ -7,14 +7,14 @@ class Strings
 {
     std::string string_name;
     public:
-        void set_name(std::string new_string_name)
-        {
-            this->string_name = new_string_name;
-        }
-
         std::string get_string()
         {
                 return string_name;
+        }
+
+        void set_name(std::string new_string_name)
+        {
+            this->string_name = new_string_name;
         }
 };
 
