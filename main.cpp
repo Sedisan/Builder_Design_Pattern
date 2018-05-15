@@ -7,7 +7,7 @@ class Strings
 {
     std::string string_name;
     public:
-        std::string get_string()
+        std::string get_name()
         {
                 return string_name;
         }
@@ -53,7 +53,7 @@ class AbstractGuitar
         void specification()
         {
             std::cout << "Guitar's body " << body->get_name() << '\n';
-            std::cout << "Guitar's strings name: " << strings->get_string() << '\n';
+            std::cout << "Guitar's strings name: " << strings->get_name() << '\n';
             std::cout << '\n';
         }
 };
