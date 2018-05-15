@@ -42,7 +42,7 @@ class Builder
         virtual std::shared_ptr<Strings> get_strings() = 0;
 };
 
-/// Visual
+/// Visual. AbstractGuitar could be created. Beware this.
 
 class AbstractGuitar
 {
@@ -61,11 +61,15 @@ class AbstractGuitar
 /// Logic
 
 class Director
-{   Builder* builder;
+{   std::shared_ptr<Builder> builder;
     public:
-        void set_builder(Builder * new_builder)
+        template<typename B>
+        void set_builder(B new_builder)
         {
-            this->builder = new_builder;
+                if(!std::is_base_of<Builder, B>())
+                    throw "Wrong object's type";
+
+            this->builder = std::make_shared<B>();
         }
 
         std::shared_ptr<AbstractGuitar> get_abstract_guitar()
@@ -79,16 +83,17 @@ class Director
 
 /// Namespace to avoid name collisions
 
-namespace automate{
+namespace automate
+{
     template<typename T>
-    std::shared_ptr<T> automate_guitar_body_set(std::string body_name)
+    std::shared_ptr<T> automate_guitar_set(std::string body_name)
     {
         std::shared_ptr<T> new_sth(new T());
         new_sth->set_name(body_name);
         return new_sth;
     }
-
-    void automate_create_builder(Builder * builder, Director director, std::shared_ptr<AbstractGuitar> abstract_guitar)
+    template<typename B>
+    void automate_create_builder(B builder, Director director, std::shared_ptr<AbstractGuitar> abstract_guitar)
     {
         director.set_builder(builder);
         abstract_guitar = director.get_abstract_guitar();
@@ -103,12 +108,12 @@ class FirstGuitar: public Builder
     public:
         std::shared_ptr<Body> get_body()
         {
-            return automate::automate_guitar_body_set<Body>("First super guitar");
+            return automate::automate_guitar_set<Body>("First super guitar");
         }
 
         std::shared_ptr<Strings> get_strings()
         {
-            return automate::automate_guitar_body_set<Strings>("First guitar string");
+            return automate::automate_guitar_set<Strings>("First guitar string");
         }
 };
 
@@ -117,13 +122,12 @@ class SecondGuitar: public Builder
     public:
         std::shared_ptr<Body> get_body()
         {
-            return automate::automate_guitar_body_set<Body>("Second super guitar");
+            return automate::automate_guitar_set<Body>("Second super guitar");
         }
         std::shared_ptr<Strings> get_strings()
         {
-            return automate::automate_guitar_body_set<Strings>("Second super guitar string!!!");
+            return automate::automate_guitar_set<Strings>("Second super guitar string!");
         }
-
 };
 
 class ThirdGuitar: public Builder
@@ -131,22 +135,26 @@ class ThirdGuitar: public Builder
     public:
         std::shared_ptr<Body> get_body()
         {
-            return automate::automate_guitar_body_set<Body>("Third guitar");
+            return automate::automate_guitar_set<Body>("Third guitar");
         }
 
         std::shared_ptr<Strings> get_strings()
         {
-            return automate::automate_guitar_body_set<Strings>("Third super guitar string!");
+            return automate::automate_guitar_set<Strings>("Third super guitar string!");
         }
 };
 int main()
 {
     Director director;
-    std::shared_ptr<AbstractGuitar> general_abstract_guitar;
+    std::shared_ptr<AbstractGuitar> general_abstract_guitar(new AbstractGuitar());
     FirstGuitar first;
     SecondGuitar second;
     ThirdGuitar third;
-    automate::automate_create_builder(&first, director, general_abstract_guitar);
-    automate::automate_create_builder(&second, director, general_abstract_guitar);
-    automate::automate_create_builder(&third, director, general_abstract_guitar);
+    std::weak_ptr<AbstractGuitar> weak_to_check = general_abstract_guitar;
+    automate::automate_create_builder(first, director, general_abstract_guitar);
+    automate::automate_create_builder(second, director, general_abstract_guitar);
+    automate::automate_create_builder(third, director, general_abstract_guitar);
+    automate::automate_create_builder(first, director, general_abstract_guitar);
+    if(weak_to_check.lock())
+        std::cout << "Everything went ok.\n";
 }
